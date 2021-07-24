@@ -12,8 +12,11 @@ class Report:
     """
 
     def __init__(self, date_from, date_to):
-        self.date_from = make_aware(datetime.datetime.strptime(date_from, "%d.%m.%Y"))
-        self.date_to = make_aware(datetime.datetime.strptime(date_to, "%d.%m.%Y"))
+        self.date_from, self.date_to = map(self.reformat_date, (date_from, date_to))
+        self.date_to += datetime.timedelta(days=1)
+
+    def reformat_date(self, date):
+        return make_aware(datetime.datetime.strptime(date, "%d.%m.%Y"))
 
     def get_proceeds(self):
 
