@@ -5,4 +5,4 @@ __pycache__
 *.log
 *.pot
 *.pyc
-/sample_code/sample_code/secret_settings.py
+/my_sample_code/my_sample_code/secret_settings.py
