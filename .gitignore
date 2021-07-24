@@ -1,0 +1,8 @@
+.idea
+venv
+dist
+__pycache__
+*.log
+*.pot
+*.pyc
+/sample_code/sample_code/secret_settings.py
