@@ -1,6 +1,7 @@
 import datetime
+from psycopg2.extras import Json
 
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Case, When, Count
 from django.utils.timezone import make_aware
 
 from store.models import Order, OrderProduct
@@ -18,46 +19,13 @@ class Report:
     def reformat_date(self, date):
         return make_aware(datetime.datetime.strptime(date, "%d.%m.%Y"))
 
-    def get_proceeds(self):
-
-        proceeds = Order.objects.values('total_price').filter(updated__range=(self.date_from, self.date_to),
-                                                              returned=False).aggregate(proceed=Sum('total_price'))
-
-        if proceeds.get('proceed'):
-            return proceeds.get('proceed')
-
-        return 0
-
-    def get_profit(self):
-
-        total_price = self.get_proceeds()
-
-        cost_price = OrderProduct.objects.values('product__cost_price',
-                                                 'quantity', ).filter(order__updated__range=(self.date_from,
-                                                                                             self.date_to),
-                                                                      order__returned=False).aggregate(
-            profit=Sum(F('product__cost_price') * F('quantity')))
-
-        if total_price and cost_price.get('profit'):
-            profit = total_price - cost_price.get('profit')
-            return profit
-        return 0
-
-    def get_selled_products(self):
-
-        total_selled_products = Order.objects.values('total_products').filter(updated__range=(self.date_from,
-                                                                                              self.date_to),
-                                                                              returned=False).aggregate(
-            total_selled_products=Sum('total_products'))
-
-        if total_selled_products.get('total_selled_products'):
-            return total_selled_products.get('total_selled_products')
-
-        return 0
-
-    def get_refund_orders(self):
-
-        refund_orders = Order.objects.values('id').filter(updated__range=(self.date_from, self.date_to),
-                                                          returned=True).count()
-
-        return refund_orders
+    def get_report_products(self):
+        products_sells = OrderProduct.objects.filter(
+            order__updated__range=(self.date_from, self.date_to)).values('product__id').annotate(
+            refund_products=Sum(Case(When(order__returned=True, then='quantity'))),
+            quantity_selled_products=Sum(F('quantity')) - F('refund_products'),
+            proceeds_selled_product=F('product__price') * F('quantity_selled_products'),
+            profit=F('proceeds_selled_product') - (
+                    F('product__cost_price') * F('quantity_selled_products')),
+        )
+        return products_sells

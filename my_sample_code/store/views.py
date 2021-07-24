@@ -9,9 +9,9 @@ from rest_framework.viewsets import ModelViewSet
 
 from store.models import Product, OrderProduct, Order
 from store.serializers import (ProductSerializer,
-                                           ProductEconomicDataSerializer,
-                                           OrderSerializer
-                                           )
+                               ProductEconomicDataSerializer,
+                               OrderSerializer
+                               )
 from store.utils.add_and_remove_products import return_products_because_reset_order, add_products_to_order
 from store.utils.cart import Cart
 from store.utils.reports import Report
@@ -115,16 +115,11 @@ class ReportAPIView(generics.GenericAPIView):
     def get(self, request):
         date_from = request.data.get('date_from')
         date_to = request.data.get('date_to')
+        # date_from, date_to = "24.07.2021", "24.07.2021"
         try:
             report = Report(date_from, date_to)
-            proceeds = report.get_proceeds()
-            profit = report.get_profit()
-            total_selled_products = report.get_selled_products()
-            refund_orders = report.get_refund_orders()
+            products_report = report.get_report_products()
         except (ValueError, TypeError):
             return Response({'detail': "No date range was specified"}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"proceeds": proceeds,
-                         "profit": profit,
-                         "selled_products": total_selled_products,
-                         "refund_orders": refund_orders})
+        return Response({"products": products_report})
