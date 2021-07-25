@@ -14,16 +14,16 @@ class Cart(object):
             cart = self.session[settings.CART_SESSION_ID] = {}
         self.cart = cart
 
-    def add(self, product, quantity=1):
+    def add(self, product, quantity_to_buy=1):
         product_id = str(product.get('id'))
-        if product['quantity'] >= quantity > 0:
+        product_quantity, product_price = map(product.get, ('quantity', 'price'))
+        if product_quantity >= quantity_to_buy > 0:
             if product_id not in self.cart:
-                self.cart[product_id] = {'quantity': 0,
-                                         'price': str(product.get('price'))}
-                self.cart[product_id]['quantity'] = quantity
+                self.cart[product_id] = {'quantity': quantity_to_buy,
+                                         'price': product_price}
             else:
-                if product['quantity'] - self.cart[product_id]['quantity'] >= quantity:
-                    self.cart[product_id]['quantity'] += quantity
+                if product_quantity - self.cart[product_id]['quantity'] >= quantity_to_buy:
+                    self.cart[product_id]['quantity'] += quantity_to_buy
                 else:
                     return False
             self.save()
@@ -54,13 +54,8 @@ class Cart(object):
     def __len__(self):
         return sum(item.get('quantity') for item in self.cart.values())
 
-    def get_total_price(self):
-        return sum(Decimal(item.get('price')) * item.get('quantity') for item in
-                   self.cart.values())
-
     def get_product_total_price(self, product):
-        product_price = self.cart[str(product.id)]['price']
-        product_quantity = self.cart[str(product.id)]['quantity']
+        product_price, product_quantity = map(self.cart[str(product.id)].get, ('price', 'quantity'))
         return Decimal(product_price * product_quantity)
 
     def clear(self):

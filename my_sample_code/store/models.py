@@ -21,8 +21,6 @@ class Order(models.Model):
     city = models.CharField(max_length=100)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    total_products = models.PositiveIntegerField(default=0)
-    total_price = models.DecimalField(max_digits=100, decimal_places=2, default=0)
     returned = models.BooleanField(default=False)
 
     def __str__(self):
@@ -32,7 +30,6 @@ class Order(models.Model):
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name='order_items', on_delete=models.PROTECT)
-    total_price = models.DecimalField(max_digits=100, decimal_places=2)
     quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
