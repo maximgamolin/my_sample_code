@@ -18,18 +18,17 @@ class Cart(object):
         product_id = str(product.get('id'))
         product_quantity = product.get('quantity')
         product_price = product.get('price')
-        if product_quantity >= quantity_to_buy > 0:
-            if product_id not in self.cart:
-                self.cart[product_id] = {'quantity': quantity_to_buy,
-                                         'price': product_price}
-            else:
-                if product_quantity - self.cart[product_id]['quantity'] >= quantity_to_buy:
-                    self.cart[product_id]['quantity'] += quantity_to_buy
-                else:
-                    return False
-            self.save()
-            return self.cart
-        return False
+        try:
+            if quantity_to_buy > product_quantity - self.cart[product_id]['quantity']:
+                return False
+            self.cart[product_id]['quantity'] += quantity_to_buy
+        except KeyError:
+            if quantity_to_buy > product_quantity:
+                return False
+            self.cart[product_id] = {'quantity': quantity_to_buy,
+                                     'price': product_price}
+        self.save()
+        return self.cart
 
     def save(self):
         self.session[settings.CART_SESSION_ID] = self.cart

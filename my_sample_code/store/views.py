@@ -7,7 +7,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from store.models import Product, OrderProduct, Order
+from store.models import Product, Order
 from store.serializers import (ProductSerializer,
                                ProductEconomicDataSerializer,
                                OrderSerializer
@@ -50,8 +50,7 @@ class CartAPIView(generics.GenericAPIView):
         serializer = ProductSerializer(product)
         added_product = cart.add(product=serializer.data, quantity_to_buy=quantity)
         if added_product:
-            return Response({'detail': 'Product added to your cart',
-                             'products': added_product})
+            return Response({'detail': 'Product added to your cart', 'products': added_product})
         return Response({'detail': 'The quantity of the product is too large'}, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):

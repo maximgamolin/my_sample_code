@@ -207,7 +207,7 @@ class CartAPIViewTestCase(APITestCase):
     def test_get_empty_cart(self):
         response = self.client.get(reverse('cart'), format='json')
         status_code, content = response.status_code, json.loads(response.content)
-        self.assertIsNone(content)
+        self.assertEqual(content, {})
         self.assertEqual(status_code, 200)
 
     def test_post_add_product_to_cart(self):
@@ -261,6 +261,7 @@ class CartAPIViewTestCase(APITestCase):
             "quantity": data1["quantity_to_buy"],
             "price": str(self.product1.price) + ".00"}
         }
+
         self.assertEqual(content["detail"], "Product added to your cart")
         self.assertEqual(content["products"][str(self.product1.id)]["quantity"], data1["quantity_to_buy"])
         self.assertEqual(content["products"], added_product_data1)
@@ -274,6 +275,7 @@ class CartAPIViewTestCase(APITestCase):
             "quantity": data1["quantity_to_buy"] + data2["quantity_to_buy"],
             "price": str(self.product1.price) + ".00"}
         }
+
         self.assertEqual(content["detail"], "Product added to your cart")
         self.assertEqual(content["products"][str(self.product1.id)]["quantity"],
                          data1["quantity_to_buy"] + data2["quantity_to_buy"])
@@ -318,22 +320,10 @@ class OrderAPIViewTestCase(APITestCase):
         self.data_product1 = {"product_id": self.product1.id,
                               "quantity_to_buy": 10}
         response = self.client.post(reverse('cart'), data=self.data_product1, format='json')
-        # status_code, content = response.status_code, json.loads(response.content)
-        # added_product1_data = {
-        #     str(self.data_product1["product_id"]): {"quantity": self.data_product1["quantity_to_buy"],
-        #                                             "price": str(self.product1.price) + ".00"}}
 
         self.data_product2 = {"product_id": self.product2.id,
                               "quantity_to_buy": 5}
         response = self.client.post(reverse('cart'), data=self.data_product2, format='json')
-        # status_code, content = response.status_code, json.loads(response.content)
-        #
-        # added_two_products_data = {
-        #     str(self.data_product1["product_id"]): {"quantity": self.data_product1["quantity_to_buy"],
-        #                                             "price": str(self.product1.price) + ".00"},
-        #     str(self.data_product2["product_id"]): {"quantity": self.data_product2["quantity_to_buy"],
-        #                                             "price": str(self.product2.price) + ".00"}
-        #     }
 
     def test_get_empty_order(self):
         response = self.client.get(reverse('order'), format='json')
@@ -358,8 +348,6 @@ class OrderAPIViewTestCase(APITestCase):
                                'city': 'test_city',
                                'created': content['order_data']['created'],
                                'updated': content['order_data']['updated'],
-                               'total_products': 2,
-                               'total_price': '2000.00',
                                'returned': False}
         expected_selled_products = {str(self.product1.id): {"quantity": self.data_product1["quantity_to_buy"],
                                                             "total_price": float(

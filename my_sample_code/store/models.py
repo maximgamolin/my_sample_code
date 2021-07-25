@@ -75,6 +75,7 @@ class Order(models.Model):
             return True
         return False
 
+    @transaction.atomic
     def cancel_order(self, request):
         """
         Cancel sellected order
