@@ -24,7 +24,8 @@ class Cart(object):
             else:
                 if product_quantity - self.cart[product_id]['quantity'] >= quantity_to_buy:
                     self.cart[product_id]['quantity'] += quantity_to_buy
-                return False
+                else:
+                    return False
             self.save()
             return self.cart
         return False
