@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 from store.views import (ProductAPIViewSet,
                          UpdateProductEconomicDataAPIView,
@@ -8,22 +8,17 @@ from store.views import (ProductAPIViewSet,
                          ReportAPIView,
                          )
 
-import debug_toolbar
-from django.conf import settings
+router_v1 = DefaultRouter()
 
-router = DefaultRouter()
-
-router.register(r'api/product', ProductAPIViewSet)
+router_v1.register(r'api/v1/product', ProductAPIViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/update_product_economic_data/', UpdateProductEconomicDataAPIView.as_view(),
+    path('api/v1/update_product_economic_data/', UpdateProductEconomicDataAPIView.as_view(),
          name='update_product_economic_data'),
-    path('api/cart/', CartAPIView.as_view(), name='cart'),
-    path('api/order/', OrderAPIView.as_view(), name='order'),
-    path('api/report/', ReportAPIView.as_view(), name='proceeds'),
-
-    path('__debug__/', include(debug_toolbar.urls)),
+    path('api/v1/cart/', CartAPIView.as_view(), name='cart'),
+    path('api/v1/order/', OrderAPIView.as_view(), name='order'),
+    path('api/v1/report/', ReportAPIView.as_view(), name='proceeds'),
 ]
 
-urlpatterns += router.urls
+urlpatterns += router_v1.urls

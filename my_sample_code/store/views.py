@@ -56,6 +56,7 @@ class CartAPIView(generics.GenericAPIView):
         return Response({'detail': 'The quantity of the product is too large'}, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request):
+        Cart(request)
         cart = request.session.get('cart')
         return Response(cart, status=status.HTTP_200_OK)
 
