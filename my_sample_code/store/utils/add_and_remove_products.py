@@ -19,7 +19,6 @@ def return_products_because_reset_order(product, quantity_to_add):
     return True
 
 
-@transaction.atomic
 def add_products_to_order(cart, order):
     selled_products = {}
     not_selled_products = {}
@@ -37,7 +36,8 @@ def add_products_to_order(cart, order):
         else:
             # dict{'product_id': max_quantity_than_user_can_buy_now}
             not_selled_products[product_to_add.id] = int(product_to_add.quantity)
-    OrderProduct.objects.bulk_create(order_products_to_create)
+    with transaction.atomic():
+        OrderProduct.objects.bulk_create(order_products_to_create)
     cart.clear()
     order_data = OrderSerializer(order).data
     return order_data, selled_products, not_selled_products
