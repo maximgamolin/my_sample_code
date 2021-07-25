@@ -16,7 +16,8 @@ class Cart(object):
 
     def add(self, product, quantity_to_buy=1):
         product_id = str(product.get('id'))
-        product_quantity, product_price = map(product.get, ('quantity', 'price'))
+        product_quantity = product.get('quantity')
+        product_price = product.get('price')
         if product_quantity >= quantity_to_buy > 0:
             if product_id not in self.cart:
                 self.cart[product_id] = {'quantity': quantity_to_buy,
@@ -55,7 +56,8 @@ class Cart(object):
         return sum(item.get('quantity') for item in self.cart.values())
 
     def get_product_total_price(self, product):
-        product_price, product_quantity = map(self.cart[str(product.id)].get, ('price', 'quantity'))
+        product_price = self.cart[str(product.id)].get('price')
+        product_quantity = self.cart[str(product.id)].get('quantity')
         return Decimal(product_price * product_quantity)
 
     def clear(self):
