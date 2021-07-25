@@ -1,7 +1,6 @@
 import datetime
-from psycopg2.extras import Json
 
-from django.db.models import Sum, F, Case, When, Count
+from django.db.models import Sum, F, Case, When
 from django.utils.timezone import make_aware
 
 from store.models import Order, OrderProduct
@@ -22,7 +21,7 @@ class Report:
     def get_report_products(self):
         products_sells = OrderProduct.objects.filter(
             order__updated__range=(self.date_from, self.date_to)).values('product__id').annotate(
-            refund_products=Sum(Case(When(order__returned=True, then='quantity'))),
+            refund_products=Sum(Case(When(order__returned=True, then='quantity'), default=0)),
             quantity_selled_products=Sum(F('quantity')) - F('refund_products'),
             proceeds=F('product__price') * F('quantity_selled_products'),
             profit=F('proceeds') - (
