@@ -24,8 +24,8 @@ class Report:
             order__updated__range=(self.date_from, self.date_to)).values('product__id').annotate(
             refund_products=Sum(Case(When(order__returned=True, then='quantity'))),
             quantity_selled_products=Sum(F('quantity')) - F('refund_products'),
-            proceeds_selled_product=F('product__price') * F('quantity_selled_products'),
-            profit=F('proceeds_selled_product') - (
+            proceeds=F('product__price') * F('quantity_selled_products'),
+            profit=F('proceeds') - (
                     F('product__cost_price') * F('quantity_selled_products')),
         )
         return products_sells
