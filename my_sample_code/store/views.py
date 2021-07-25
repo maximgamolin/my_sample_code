@@ -33,9 +33,10 @@ class UpdateProductEconomicDataAPIView(generics.UpdateAPIView):
         serializer = self.get_serializer(data=self.request.data)
         product_id = self.request.data.get('id')
         product = get_object_or_404(Product, id=product_id)
-        product.quantity = self.request.data.get('quantity')
-        product.price = self.request.data.get('price')
-        product.cost_price = self.request.data.get('cost_price')
+        product.quantity, product.price, product.cost_price = map(self.request.data.get, ('quantity',
+                                                                                          'price',
+                                                                                          'cost_price'
+                                                                                          ))
         serializer.is_valid(raise_exception=True)
         product.save()
         return Response(self.request.data)
