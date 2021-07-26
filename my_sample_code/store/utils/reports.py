@@ -3,7 +3,7 @@ import datetime
 from django.db.models import Sum, F, Case, When
 from django.utils.timezone import make_aware
 
-from store.models import Order, OrderProduct
+from store.models import OrderProduct
 
 
 class Report:
