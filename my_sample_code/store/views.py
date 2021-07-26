@@ -63,7 +63,7 @@ class CartAPIView(generics.GenericAPIView):
         product_id = request.data.get('product_id')
         product = get_object_or_404(Product, id=product_id)
         cart.remove(product)
-        return Response({'detail': 'Item remover from cart'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'detail': 'Item removed from cart'}, status=status.HTTP_204_NO_CONTENT)
 
 
 class OrderAPIView(generics.GenericAPIView):
