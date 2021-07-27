@@ -66,7 +66,9 @@ python manage.py runserver
 Here it is described what the URL is and what data is expected in the request / response.
 
 later this description will be replaced with a swagger
-###Get product list
+
+### Get product list
+
 url = http://127.0.0.1:8000/api/v1/product/
 
 request method = GET
@@ -97,7 +99,7 @@ expected response data (example) =
  "cost_price":"20.00",
  "quantity":92}]
 ```
-###Create new product
+### Create new product
 
 url = http://127.0.0.1:8000/api/v1/product/
 
@@ -118,7 +120,7 @@ expected response data (example) = {"id": 4,
                                     "cost_price": "40.00",
                                     "quantity": 100}
 ```
-###Change product data
+### Change product data
 
 url = http://127.0.0.1:8000/api/v1/product/4/ #product_id=4
 
@@ -139,7 +141,7 @@ expected response data (example) = {"id": 4,
                                     "cost_price": "40.00",
                                     "quantity": 100}
 ```
-###Search items in product list on 'name', 'price' or 'cost_price'
+### Search items in product list on 'name', 'price' or 'cost_price'
 
 url (example) = http://127.0.0.1:8000/api/v1/product/?search=150
 
@@ -156,7 +158,7 @@ expected response data (example) =
  "cost_price":"50.00",
  "quantity":300}]
 ```
-###Filter product list on 'name', 'price' or 'cost_price'
+### Filter product list on 'name', 'price' or 'cost_price'
 
 url (example) = http://127.0.0.1:8000/api/v1/product/?price=150
 
@@ -175,7 +177,7 @@ expected response data (example) =
  "cost_price":"50.00",
  "quantity":300}]
 ```
-###Order product list on 'name', 'price' or 'cost_price'
+### Order product list on 'name', 'price' or 'cost_price'
 
 url (example) = http://127.0.0.1:8000/api/v1/product/?ordering=price
 
@@ -206,7 +208,7 @@ expected response data (example) =
  "cost_price":"30.00",
  "quantity":100}]
 ```
-###Change 'quantity', 'price' or 'cost_price' of selected product (all of this or only one):
+### Change 'quantity', 'price' or 'cost_price' of selected product (all of this or only one):
 
 url = http://127.0.0.1:8000/api/v1/update_product_economic_data/
 
@@ -222,7 +224,7 @@ expected response data (example) = {"id": 1,
                                     "price": 10000,
                                     "cost_price": 1000}
 ```
-###Get products in cart list 
+### Get products in cart list 
 
 url = http://127.0.0.1:8000/api/v1/cart/
 
@@ -236,7 +238,7 @@ expected response data (example) = {"2": {"quantity": 30,
                                    
 *if cart is empty response data = {}
 ```
-###Add products to cart
+### Add products to cart
 
 url = http://127.0.0.1:8000/api/v1/cart/
 
@@ -254,7 +256,7 @@ expected response data (example) = {"detail": "Product added to your cart",
                                         }
                                     }
 ```
-###Remove products from cart
+### Remove products from cart
 
 url = http://127.0.0.1:8000/api/v1/cart/
 
@@ -264,7 +266,7 @@ expected request data (example) = {"product_id": 2}
 
 expected response data (example) = {"detail": "Item removed from cart"}
 ```
-###Get order data
+### Get order data
 
 url = http://127.0.0.1:8000/api/v1/order/
 
@@ -287,7 +289,7 @@ expected response data (example) = {"order": {
                                     
 *if order not created will return 404 ('Not found')
 ```
-###Create order
+### Create order
 
 url = http://127.0.0.1:8000/api/v1/order/
 
@@ -324,7 +326,7 @@ expected response data (example) = {"detail": "Order created",
                                     "not_selled_products": {}
                                     }
 ```                    
-###Refund order
+### Refund order
 
 url = http://127.0.0.1:8000/api/v1/order/
 
@@ -334,7 +336,7 @@ expected request data (example) = {"order_id": 25}
 
 expected response data (example) = {"detail": "Order has been returned"}
 ```
-###Get report(quantity of refund products, quantity of selled products, proceeds, profit) for every product for a selected period of time
+### Get report(quantity of refund products, quantity of selled products, proceeds, profit) for every product for a selected period of time
 
 url = http://127.0.0.1:8000/api/v1/report/
 
