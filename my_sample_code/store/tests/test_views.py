@@ -3,9 +3,14 @@ import json
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from django.test import RequestFactory
+from store.views import OrderAPIView
+from django.contrib.sessions.middleware import SessionMiddleware
 
-from store.models import Product
+from store.models import Product, OrderProduct
 from store.serializers import ProductSerializer
+from store.tests.utils.factories import ProductFactory, CartFactory
+from django.conf import settings
 
 
 class ProductAPITestCase(APITestCase):
@@ -302,28 +307,20 @@ class CartAPIViewTestCase(APITestCase):
 class OrderAPIViewTestCase(APITestCase):
 
     def setUp(self):
-        self.product1 = Product.objects.create(name='test_product_1',
-                                               about_product='about_test_product_1',
-                                               vendor_code='A1',
-                                               price=100,
-                                               cost_price=10,
-                                               quantity=100,
-                                               )
+        self.start_product_1_quantity = 100
+        self.start_product_2_quantity = 200
 
-        self.product2 = Product.objects.create(name='test_product_2',
-                                               about_product='about_test_product_2',
-                                               vendor_code='A2',
-                                               price=200,
-                                               cost_price=30,
-                                               quantity=200)
+        self.product1 = ProductFactory().make_item({"quantity": self.start_product_1_quantity})
+        self.product2 = ProductFactory().make_item({"quantity": self.start_product_2_quantity})
 
-        self.data_product1 = {"product_id": self.product1.id,
-                              "quantity_to_buy": 10}
-        response = self.client.post(reverse('cart'), data=self.data_product1, format='json')
+        self.quantity_to_buy_1 = 10
+        self.quantity_to_buy_2 = 5
 
-        self.data_product2 = {"product_id": self.product2.id,
-                              "quantity_to_buy": 5}
-        response = self.client.post(reverse('cart'), data=self.data_product2, format='json')
+        self.request_factory = RequestFactory()
+        self.cart_factory = CartFactory()
+        self.cart_factory.add_to_cart(self.product1.id, self.quantity_to_buy_1, self.product1.price)
+        self.cart_factory.add_to_cart(self.product2.id, self.quantity_to_buy_2, self.product2.price)
+
 
     def test_get_empty_order(self):
         response = self.client.get(reverse('order'), format='json')
@@ -332,12 +329,20 @@ class OrderAPIViewTestCase(APITestCase):
         self.assertEqual(status_code, 404)
 
     def test_post_create_order_all_products_selled(self):
+        self.assertEqual(OrderProduct.objects.count(), 0)
         data = {"customer_name": "test_name",
                 "email": "test@email.com",
                 "address": "test street",
                 "postal_code": 123456,
                 "city": "test_city"}
-        response = self.client.post(reverse('order'), data=data, format='json')
+
+        request = self.request_factory.post(reverse('order'), data=data, content_type='application/json')
+        middleware = SessionMiddleware()
+        middleware.process_request(request)
+        request.session[settings.CART_SESSION_ID] = self.cart_factory.cart
+        request.session.save()
+        response = OrderAPIView.as_view()(request)
+        response.render()
         status_code, content = response.status_code, json.loads(response.content)
 
         expected_order_data = {'id': content['order_data']['id'],
@@ -349,14 +354,12 @@ class OrderAPIViewTestCase(APITestCase):
                                'created': content['order_data']['created'],
                                'updated': content['order_data']['updated'],
                                'returned': False}
-        expected_selled_products = {str(self.product1.id): {"quantity": self.data_product1["quantity_to_buy"],
-                                                            "total_price": float(
-                                                                self.product1.price * self.data_product1[
-                                                                    "quantity_to_buy"])},
-                                    str(self.product2.id): {"quantity": self.data_product2["quantity_to_buy"],
-                                                            "total_price": float(
-                                                                self.product2.price * self.data_product2[
-                                                                    "quantity_to_buy"])}
+        expected_selled_products = {str(self.product1.id): {"quantity": self.quantity_to_buy_1,
+                                                            "total_price":
+                                                                float(self.product1.price * self.quantity_to_buy_1)},
+                                    str(self.product2.id): {"quantity": self.quantity_to_buy_2,
+                                                            "total_price":
+                                                                float(self.product2.price * self.quantity_to_buy_2)}
                                     }
         expected_not_selled_products = {}
         self.assertEqual(content["detail"], "Order created")
@@ -364,3 +367,17 @@ class OrderAPIViewTestCase(APITestCase):
         self.assertEqual(content["selled_products"], expected_selled_products)
         self.assertEqual(content["not_selled_products"], expected_not_selled_products)
         self.assertEqual(status_code, 201)
+
+        self.product1.refresh_from_db()
+        self.product2.refresh_from_db()
+        self.assertEqual(self.product1.quantity, self.start_product_1_quantity-self.quantity_to_buy_1)
+        self.assertEqual(self.product2.quantity, self.start_product_2_quantity-self.quantity_to_buy_2)
+
+        self.assertEqual(OrderProduct.objects.count(), 2)
+        for product, quantity in [(self.product1, self.quantity_to_buy_1),
+                                  (self.product2, self.quantity_to_buy_2)]:
+            with self.subTest():
+                order_product = OrderProduct.objects\
+                    .filter(product=product, order_id=content['order_data']['id']).first()
+                self.assertIsNotNone(order_product)
+                self.assertEqual(order_product.quantity, quantity)
