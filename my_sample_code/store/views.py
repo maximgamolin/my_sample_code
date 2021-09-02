@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db import transaction
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -14,6 +15,7 @@ from store.serializers import (ProductSerializer,
                                )
 from store.utils.cart import Cart
 from store.utils.reports import Report
+from store.cases.create_order.add_products_to_order import AddProductsToOrdersFromCart
 
 
 class ProductAPIViewSet(ModelViewSet):
@@ -79,21 +81,24 @@ class OrderAPIView(generics.GenericAPIView):
         cart = Cart(request)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        order = serializer.save()
-        selled_products, not_selled_products = Order().add_products_from_cart_to_order(cart, order)
-        if Order().can_be_ordered(selled_products, not_selled_products):
-            return Response({'detail': 'Cant sell this quantity of selected products. Please change it',
-                             'not_selled_products': not_selled_products},
-                            status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            order = serializer.save()
+            helper = AddProductsToOrdersFromCart(cart, order)
+            helper.transfer_positions()
+            if Order().can_be_ordered(helper.selled_products,
+                                      helper.not_selled_products):
+                return Response({'detail': 'Cant sell this quantity of selected products. Please change it',
+                                 'not_selled_products': helper.not_selled_products},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        order = serializer.save()
+            order = serializer.save()
         order_data = OrderSerializer(order).data
         request.session['order_id'] = order.id
         cart.clear()
         return Response({'detail': 'Order created',
                          'order_data': order_data,
-                         'selled_products': selled_products,
-                         'not_selled_products': not_selled_products},
+                         'selled_products': helper.selled_products,
+                         'not_selled_products': helper.not_selled_products},
                         status=status.HTTP_201_CREATED)
 
     def patch(self, request):
